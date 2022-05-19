@@ -84,8 +84,15 @@ def make_confusion_matrix(cf,
             stats_text = "\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}".format(
                 accuracy,precision,recall,f1_score)
         else:
-            stats_text = "\n\nAccuracy={:0.3f}".format(accuracy)
-    else:
+            # Metrics for multi-class 
+            precision = np.diagonal(cf) / np.sum(cf, axis=1).reshape(3,) # precision should be divided by sum of row
+            recall = np.diagonal(cf) / np.sum(cf, axis=0).reshape(3,) # recall is sum of column (note: for inverted confusion matrix)
+            f1_scores = (2*np.multiply(precision, recall))/(precision + recall)
+            macro_f1_score = np.mean(f1_scores)
+            stats_text = "\n\nAccuracy: {:0.3f}, Macro F1-score: {:0.3f}".format(accuracy, macro_f1_score) 
+            
+#             stats_text = "\n\nAccuracy={:0.3f}".format(accuracy) # TODO: default
+    else: 
         stats_text = ""
 
 
@@ -103,9 +110,12 @@ def make_confusion_matrix(cf,
     plt.figure(figsize=figsize)
     sns.heatmap(cf,annot=box_labels,fmt="",cmap=cmap,cbar=cbar,xticklabels=categories,yticklabels=categories)
 
-    if xyplotlabels:
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label' + stats_text)
+    if xyplotlabels:         
+        plt.ylabel('True Label') 
+        plt.xlabel('Predicted Label' + stats_text) 
+#        plt.ylabel('Predicted Output Class') # TODO: For transposed confusion matrix 
+#        plt.xlabel('True Target Class' + stats_text) # TODO: For transposed confusion matrix
+  
     else:
         plt.xlabel(stats_text)
     
